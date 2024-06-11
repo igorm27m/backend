@@ -37,7 +37,4 @@ app.use((req, res) => {
     })
 })
 
-
-app.listen(PORT, () => {
-    console.log('escuchando solicitud');
-})
+export default app;
