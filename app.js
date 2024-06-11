@@ -10,7 +10,7 @@ import routerNoticias from "./routes/noticia.route.js";
 import routerPatrocinadores from "./routes/patrocinador.route.js";
 import { PORT } from './config.js';
 import cors from 'cors';
-import fileUpload from 'express-fileupload';
+// import fileUpload from 'express-fileupload';
 
 
 const app = express();  // creado objeto con la instancia express
@@ -20,7 +20,7 @@ app.use(cors());
 // middleware
 app.use(express.json());
 
-app.use(fileUpload());
+// app.use(fileUpload());
 
 app.use(routerWelder);
 app.use(routerAdmin);
