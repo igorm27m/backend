@@ -33,13 +33,18 @@ export const getAlumnosCalificacion = async (req, res) => {
         const [result] = await conexion.query('SELECT id FROM ligas WHERE activa = 1');
         const idLiga = result[0].id;
 
+        let alumnos = null;
+
         if (idGrupo == 0){
-            const [result] = await conexion.query('SELECT * FROM alumnos WHERE id_liga =? ORDER BY nombre', [idLiga]);
-            res.status(200).json(result);
+            [alumnos] = await conexion.query('SELECT * FROM alumnos WHERE id_liga =? ORDER BY nombre', [idLiga]);
         } else {
-            const [result] = await conexion.query('SELECT * FROM alumnos WHERE id_liga = ? AND grupo =? ORDER BY nombre', [idLiga, idGrupo]);
-            res.status(200).json(result);
+            const [alumnos] = await conexion.query('SELECT * FROM alumnos WHERE id_liga = ? AND grupo =? ORDER BY nombre', [idLiga, idGrupo]);
         }
+
+        const response =await getCalificacionAlumno(alumnos);
+
+        res.status(200).json(response);
+
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -108,3 +113,55 @@ export const deleteAlumno = async (req, res) => {
         res.status(500).json({ message: 'Error al eliminar el alumno' });
     }
 };
+
+const getCalificacionAlumno = async (alumnos) => {
+    const finalResult = [];
+    for (const alumno of alumnos) {
+        try {
+            const [result1] = await conexion.query("SELECT SUM(puntos_1) as pts1 FROM encuentros WHERE alumno_1 =?", [alumno.id]);
+            const [result2] = await conexion.query("SELECT SUM(puntos_2) as pts2 FROM encuentros WHERE alumno_2 =?", [alumno.id]);
+
+            const pts = parseInt(result1[0].pts1) + parseInt(result2[0].pts2);
+
+
+            const [result3] = await conexion.query("SELECT * FROM encuentros WHERE puntos_1 > puntos_2 AND alumno_1 =?", [alumno.id]);
+            const [result4] = await conexion.query("SELECT * FROM encuentros WHERE puntos_2 > puntos_1 AND alumno_2 =?", [alumno.id]);
+
+            const ganadas = parseInt(result3.length) + parseInt(result4.length);
+
+
+            const [result5] = await conexion.query("SELECT * FROM encuentros WHERE alumno_1 =?", [alumno.id]);
+            const [result6] = await conexion.query("SELECT * FROM encuentros WHERE alumno_2 =?", [alumno.id]);
+
+            const jugadas = parseInt(result5.length) + parseInt(result6.length);
+
+
+            const [result7] = await conexion.query("SELECT * FROM encuentros WHERE puntos_1 < puntos_2 AND alumno_1 =?", [alumno.id]);
+            const [result8] = await conexion.query("SELECT * FROM encuentros WHERE puntos_2 < puntos_1 AND alumno_2 =?", [alumno.id]);
+
+            const perdidas = parseInt(result7.length) + parseInt(result8.length);
+
+
+            const [result9] = await conexion.query("SELECT * FROM encuentros WHERE puntos_1 = puntos_2 AND alumno_1 =?", [alumno.id]);
+            const [result10] = await conexion.query("SELECT * FROM encuentros WHERE puntos_2 = puntos_1 AND alumno_2 =?", [alumno.id]);
+
+            const empatadas = parseInt(result9.length) + parseInt(result10.length);
+
+            finalResult.push({
+                nombre: alumno.nombre,
+                img:alumno.img,
+                total: pts,
+                jugadas: jugadas,
+                ganadas: ganadas,
+                empate: empatadas,
+                perdidas: perdidas,
+            });
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    finalResult.sort((a, b) => b.total - a.total);
+    return finalResult;
+}
