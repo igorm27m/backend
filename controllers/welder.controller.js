@@ -158,10 +158,10 @@ export const addJornadas = async (req, res) => {
     let alumnos;
 
     if (grupo == 0) {
-      [delete_all] = await conexion.query('DELETE FROM jornadas WHERE id_liga = ?', [liga]);
+      const [delete_all] = await conexion.query('DELETE FROM jornadas WHERE id_liga = ?', [liga]);
       [alumnos] = await conexion.query('SELECT id, grupo FROM alumnos WHERE id_liga = ?', [liga]);
     } else {
-      [delete_all] = await conexion.query('DELETE FROM jornadas WHERE id_liga = ? AND id_grupo = ?', [liga, grupo]);
+      const [delete_all] = await conexion.query('DELETE FROM jornadas WHERE id_liga = ? AND id_grupo = ?', [liga, grupo]);
       [alumnos] = await conexion.query('SELECT id, grupo FROM alumnos WHERE id_liga = ? AND grupo = ?', [liga, grupo]);
     }
 
