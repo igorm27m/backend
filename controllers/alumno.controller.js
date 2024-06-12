@@ -16,7 +16,7 @@ export const getAlumnos = async (req, res) => {
       const [result] = await conexion.query('SELECT * FROM alumnos ORDER BY nombre');
       res.status(200).json(result);
     } else {
-      const [result] = await conexion.query('SELECT * FROM alumnos WHERE id_liga = ? ORDER BY nombre', [idLiga]);
+      const [result] = await conexion.query('SELECT A.id, A.nombre, A.img, A.grupo, A.dia, A.hora, L.numero AS id_liga FROM alumnos A, ligas L WHERE A.id_liga = L.id AND L.id = ? ORDER BY A.nombre', [idLiga]);
       res.status(200).json(result);
     }
   } catch (error) {
